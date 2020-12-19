@@ -1,18 +1,17 @@
-
-interface BeticProgram {
+export interface BeticProgram {
 	imports: BeticImportStatement[];
 	program: BeticProgramStatement[];
 	template: BeticTemplateStatement[];
 }
 
-type BeticTemplateStatement =
+export type BeticTemplateStatement =
 	| BeticTemplateTagStatement
 	| BeticTemplateIfStatement
 	| BeticTemplateForStatement
 	| BeticTemplateSwitchStatement
 	| BeticCommentStatement;
 
-interface BeticTemplateTagStatement {
+export interface BeticTemplateTagStatement {
 	operation: 'tag';
 	name: string;
 	attributes: {
@@ -23,7 +22,7 @@ interface BeticTemplateTagStatement {
 	body: BeticTemplateStatement[];
 	position: IBeticPosition;
 }
-interface BeticTemplateIfStatement {
+export interface BeticTemplateIfStatement {
 	operation: 'if_statement';
 	condition: BeticExpressionStatement;
 	body: IBeticTemplateCodeBlock;
@@ -34,14 +33,14 @@ interface BeticTemplateIfStatement {
 	else: IBeticTemplateCodeBlock;
 	position: IBeticPosition;
 }
-interface BeticTemplateForStatement {
+export interface BeticTemplateForStatement {
 	operation: 'for_statement';
 	statement: BeticExpressionStatement;
 	placeholder: string;
 	body: IBeticTemplateCodeBlock;
 	position: IBeticPosition;
 }
-interface BeticTemplateSwitchStatement {
+export interface BeticTemplateSwitchStatement {
 	operation: 'switch_statement';
 	condition: BeticExpressionStatement;
 	cases: {
@@ -51,7 +50,7 @@ interface BeticTemplateSwitchStatement {
 	position: IBeticPosition;
 }
 
-interface BeticImportStatement {
+export interface BeticImportStatement {
 	source: {
 		value: string;
 		position: IBeticPosition;
@@ -60,7 +59,7 @@ interface BeticImportStatement {
 	position: IBeticPosition;
 }
 
-type BeticProgramStatement =
+export type BeticProgramStatement =
 	| BeticVariableDefinitionStatement
 	| BeticTypeDefinitionStatement
 	| BeticFunctionDefinitionStatement
@@ -75,7 +74,7 @@ type BeticProgramStatement =
 	| BeticCommentStatement
 	| BeticExpressionStatement;
 
-interface BeticVariableDefinitionStatement {
+export interface BeticVariableDefinitionStatement {
 	operation: 'variable_definition';
 	constant: boolean;
 	expected: boolean;
@@ -84,13 +83,13 @@ interface BeticVariableDefinitionStatement {
 	value: BeticExpressionStatement;
 	position: IBeticPosition;
 }
-interface BeticTypeDefinitionStatement {
+export interface BeticTypeDefinitionStatement {
 	operation: 'type_definition';
 	name: string;
 	body: IBeticArgument[];
 	position: IBeticPosition;
 }
-interface BeticFunctionDefinitionStatement {
+export interface BeticFunctionDefinitionStatement {
 	operation: 'function_definition';
 	name: string;
 	type: IBeticPrimitiveType;
@@ -98,7 +97,7 @@ interface BeticFunctionDefinitionStatement {
 	body: IBeticCodeBlock;
 	position: IBeticPosition;
 }
-interface BeticMicroDefinitionStatement {
+export interface BeticMicroDefinitionStatement {
 	operation: 'micro_definition';
 	name: string;
 	type: IBeticPrimitiveType;
@@ -106,7 +105,7 @@ interface BeticMicroDefinitionStatement {
 	body: IBeticCodeBlock;
 	position: IBeticPosition;
 }
-interface BeticMacroDefinitionStatement {
+export interface BeticMacroDefinitionStatement {
 	operation: 'macro_definition';
 	name: string;
 	type: IBeticPrimitiveType;
@@ -115,14 +114,14 @@ interface BeticMacroDefinitionStatement {
 	body: IBeticCodeBlock;
 	position: IBeticPosition;
 }
-interface BeticForStatement {
+export interface BeticForStatement {
 	operation: 'for_statement';
 	statement: BeticExpressionStatement;
 	placeholder: string;
 	body: IBeticCodeBlock;
 	position: IBeticPosition;
 }
-interface BeticIfStatement {
+export interface BeticIfStatement {
 	operation: 'if_statement';
 	condition: BeticExpressionStatement;
 	body: IBeticCodeBlock;
@@ -133,7 +132,7 @@ interface BeticIfStatement {
 	else: IBeticCodeBlock;
 	position: IBeticPosition;
 }
-interface BeticSwitchStatement {
+export interface BeticSwitchStatement {
 	operation: 'switch_statement';
 	condition: BeticExpressionStatement;
 	cases: {
@@ -142,31 +141,31 @@ interface BeticSwitchStatement {
 	}[];
 	position: IBeticPosition;
 }
-interface BeticAssignStatement {
+export interface BeticAssignStatement {
 	operation: 'assign_statement';
 	left: BeticExpressionStatement;
 	right: BeticExpressionStatement;
 	position: IBeticPosition;
 }
-interface BeticQuantityModifierStatement {
+export interface BeticQuantityModifierStatement {
 	operation: 'quantity_modifier';
 	type: TBeticQuantityModifierType;
 	statement: BeticExpressionStatement;
 	position: IBeticPosition;
 }
-interface BeticTryCatchStatement {
+export interface BeticTryCatchStatement {
 	operation: 'try_catch_block';
 	tries: BeticProgramStatement[];
 	catches: BeticProgramStatement[];
 	arguments: IBeticArgument[];
 }
-interface BeticCommentStatement {
+export interface BeticCommentStatement {
 	operation: 'comment';
 	value: string;
 	position: IBeticPosition;
 }
 
-type BeticExpressionStatement =
+export type BeticExpressionStatement =
 	| BeticArithmeticExpression
 	| BeticMapValueGetterExpression
 	| BeticListValueGetterExpression
@@ -177,76 +176,76 @@ type BeticExpressionStatement =
 	| BeticPrimitiveExpression
 	| BeticReferenceExpression;
 
-interface BeticArithmeticExpression {
+export interface BeticArithmeticExpression {
 	operation: 'arithmetic';
 	type: TBeticArithmeticType;
 	left: BeticExpressionStatement;
 	right: BeticExpressionStatement;
 	position: IBeticPosition;
 }
-interface BeticMapValueGetterExpression {
+export interface BeticMapValueGetterExpression {
 	operation: 'map_value_getter';
 	left: BeticExpressionStatement;
 	right: BeticExpressionStatement;
 	position: IBeticPosition;
 }
-interface BeticListValueGetterExpression {
+export interface BeticListValueGetterExpression {
 	operation: 'list_value_getter';
 	source: BeticExpressionStatement;
 	index: BeticExpressionStatement;
 	position: IBeticPosition;
 }
-interface BeticFunctionCallExpression {
+export interface BeticFunctionCallExpression {
 	operation: 'function_call';
 	name: BeticExpressionStatement;
 	arguments: BeticExpressionStatement[];
 	position: IBeticPosition;
 }
-interface BeticMicroCallExpression {
+export interface BeticMicroCallExpression {
 	operation: 'micro_call';
 	name: BeticExpressionStatement;
 	arguments: BeticExpressionStatement[];
 	position: IBeticPosition;
 }
-interface BeticMacroCallExpression {
+export interface BeticMacroCallExpression {
 	operation: 'macro_call';
 	name: BeticExpressionStatement;
 	arguments: BeticExpressionStatement[];
 	position: IBeticPosition;
 }
-interface BeticConditionExpression {
+export interface BeticConditionExpression {
 	operation: 'condition';
 	type: TBeticConditionType;
 	left: BeticExpressionStatement;
 	right: BeticExpressionStatement;
 }
-interface BeticPrimitiveExpression {
+export interface BeticPrimitiveExpression {
 	operation: 'primitive';
 	type: IBeticPrimitiveType;
 	value: string;
 	position: IBeticPosition;
 }
-interface BeticReferenceExpression {
+export interface BeticReferenceExpression {
 	opration: 'reference';
 	value: string;
 	position: IBeticPosition;
 }
 
-interface IBeticPosition {
+export interface IBeticPosition {
 	col: number;
 	line: number;
 }
 
-interface IBeticCodeBlock {
+export interface IBeticCodeBlock {
 	block: BeticProgramStatement[];
 	provides: BeticExpressionStatement | null;
 }
 
-interface IBeticTemplateCodeBlock {
+export interface IBeticTemplateCodeBlock {
 	block: BeticTemplateStatement[];
 }
 
-type TBeticQuantityModifierType =
+export type TBeticQuantityModifierType =
 	| 'increment'
 	| 'decrement'
 	| 'add'
@@ -254,7 +253,7 @@ type TBeticQuantityModifierType =
 	| 'multiply'
 	| 'divide';
 
-type TBeticArithmeticType =
+export type TBeticArithmeticType =
 	| 'addition'
 	| 'subtraction'
 	| 'multiplication'
@@ -263,7 +262,7 @@ type TBeticArithmeticType =
 	| 'root'
 	| 'modulus';
 
-type TBeticConditionType =
+export type TBeticConditionType =
 	| 'and'
 	| 'or'
 	| 'less_than'
@@ -279,18 +278,18 @@ type TBeticConditionType =
 	| 'not_greater_than_equals'
 	| 'not_equals';
 
-interface IBeticPrimitiveType {
+export interface IBeticPrimitiveType {
 	base: TBeticPrimitiveType;
 	of?: IBeticPrimitiveType;
 }
 
-interface IBeticArgument {
+export interface IBeticArgument {
 	type: IBeticPrimitiveType;
 	value: string;
 	optional: boolean;
 }
 
-type TBeticPrimitiveType =
+export type TBeticPrimitiveType =
 	| 'Int'
 	| 'Double'
 	| 'String'
@@ -307,4 +306,4 @@ declare class BeticParser {
 	parse: (input: string) => BeticProgram;
 }
 
-export = BeticParser
+export default BeticParser
