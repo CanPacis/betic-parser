@@ -224,7 +224,7 @@ const grammar: Grammar = {
     {"name": "Tag", "symbols": ["Identifier", "_", {"literal":"-"}, {"literal":">"}, "_", {"literal":"{"}, "_", "Tag$ebnf$1", {"literal":"}"}, "Tag$ebnf$2"], "postprocess":  d => ({
           operation: "tag",
           name: d[0].value,
-          attributes: d[7],
+          attributes: d[7][0],
           body: d[9] || [],
           position: position(d[0])
         }) },
@@ -264,20 +264,26 @@ const grammar: Grammar = {
           catches: d[8].block, 
           arguments: d[6].data
         }) },
-    {"name": "QuantityModifier", "symbols": ["Mutatable", {"literal":"+"}, {"literal":"+"}], "postprocess": d => ({ operation: "quantity_modifier", type: "increment", statement: d[0] })},
-    {"name": "QuantityModifier", "symbols": ["Mutatable", {"literal":"-"}, {"literal":"-"}], "postprocess": d => ({ operation: "quantity_modifier", type: "decrement", statement: d[0] })},
-    {"name": "QuantityModifier", "symbols": ["Mutatable", "_", {"literal":"+"}, {"literal":"="}, "_", "Expression"], "postprocess": d => ({ operation: "quantity_modifier", type: "add", statement: d[0], right: d[5] })},
-    {"name": "QuantityModifier", "symbols": ["Mutatable", "_", {"literal":"-"}, {"literal":"="}, "_", "Expression"], "postprocess": d => ({ operation: "quantity_modifier", type: "subtract", statement: d[0], right: d[5] })},
-    {"name": "QuantityModifier", "symbols": ["Mutatable", "_", {"literal":"*"}, {"literal":"="}, "_", "Expression"], "postprocess": d => ({ operation: "quantity_modifier", type: "multiply", statement: d[0], right: d[5] })},
-    {"name": "QuantityModifier", "symbols": ["Mutatable", "_", {"literal":"/"}, {"literal":"="}, "_", "Expression"], "postprocess": d => ({ operation: "quantity_modifier", type: "divide", statement: d[0], right: d[5] })},
-    {"name": "AssignStatement", "symbols": ["Mutatable", "_", {"literal":"="}, "_", "Expression"], "postprocess": d => ({ operation: "assign_statement", left: d[0], right: d[4] })},
+    {"name": "QuantityModifier", "symbols": ["Mutatable", {"literal":"+"}, {"literal":"+"}], "postprocess": d => ({ operation: "quantity_modifier", type: "increment", statement: d[0], position: d[0].position })},
+    {"name": "QuantityModifier", "symbols": ["Mutatable", {"literal":"-"}, {"literal":"-"}], "postprocess": d => ({ operation: "quantity_modifier", type: "decrement", statement: d[0], position: d[0].position })},
+    {"name": "QuantityModifier", "symbols": ["Mutatable", "_", {"literal":"+"}, {"literal":"="}, "_", "Expression"], "postprocess": d => ({ operation: "quantity_modifier", type: "add", statement: d[0], right: d[5], position: d[0].position })},
+    {"name": "QuantityModifier", "symbols": ["Mutatable", "_", {"literal":"-"}, {"literal":"="}, "_", "Expression"], "postprocess": d => ({ operation: "quantity_modifier", type: "subtract", statement: d[0], right: d[5], position: d[0].position })},
+    {"name": "QuantityModifier", "symbols": ["Mutatable", "_", {"literal":"*"}, {"literal":"="}, "_", "Expression"], "postprocess": d => ({ operation: "quantity_modifier", type: "multiply", statement: d[0], right: d[5], position: d[0].position })},
+    {"name": "QuantityModifier", "symbols": ["Mutatable", "_", {"literal":"/"}, {"literal":"="}, "_", "Expression"], "postprocess": d => ({ operation: "quantity_modifier", type: "divide", statement: d[0], right: d[5], position: d[0].position })},
+    {"name": "AssignStatement", "symbols": ["Mutatable", "_", {"literal":"="}, "_", "Expression"], "postprocess":  d => ({ 
+          operation: "assign_statement", 
+          left: d[0], 
+          right: d[4],
+          position: d[0].position 
+        }) },
     {"name": "SwitchStatement$ebnf$1", "symbols": []},
     {"name": "SwitchStatement$ebnf$1$subexpression$1", "symbols": [{"literal":"case"}, "__", "Expression", "_", "CodeBlock", "_"], "postprocess": d => ({ case: d[2], body: d[4] })},
     {"name": "SwitchStatement$ebnf$1", "symbols": ["SwitchStatement$ebnf$1", "SwitchStatement$ebnf$1$subexpression$1"], "postprocess": (d) => d[0].concat([d[1]])},
     {"name": "SwitchStatement", "symbols": [{"literal":"switch"}, "__", "Expression", "_", {"literal":"{"}, "_", "SwitchStatement$ebnf$1", {"literal":"}"}], "postprocess":  d => ({ 
           operation: "switch_statement", 
           condition: d[2],
-          cases: d[6]
+          cases: d[6],
+          position: position(d[0])
         }) },
     {"name": "TemplateSwitchStatement$ebnf$1", "symbols": []},
     {"name": "TemplateSwitchStatement$ebnf$1$subexpression$1", "symbols": [{"literal":"case"}, "__", "Expression", "_", "TemplateBlock", "_"], "postprocess": d => ({ case: d[2], body: d[4] })},
@@ -285,7 +291,8 @@ const grammar: Grammar = {
     {"name": "TemplateSwitchStatement", "symbols": [{"literal":"switch"}, "__", "Expression", "_", {"literal":"{"}, "_", "TemplateSwitchStatement$ebnf$1", {"literal":"}"}], "postprocess":  d => ({ 
           operation: "switch_statement", 
           condition: d[2],
-          cases: d[6]
+          cases: d[6],
+          position: position(d[0])
         }) },
     {"name": "IfStatement$ebnf$1", "symbols": []},
     {"name": "IfStatement$ebnf$1$subexpression$1", "symbols": ["_", {"literal":"elif"}, "__", "Expression", "_", "CodeBlock"], "postprocess": d => ({ condition: d[3], body: d[5] })},
@@ -362,7 +369,7 @@ const grammar: Grammar = {
         }) },
     {"name": "MicroDefinition", "symbols": [{"literal":"micro"}, "_", {"literal":"-"}, {"literal":">"}, "_", "VariableType", "__", "Identifier", "__", "TypedIdentifier", "_", "CodeBlock"], "postprocess":  d => ({ 
           operation: "micro_definition", 
-          return_type: d[5],
+          type: d[5],
           name: d[7].value, 
           prototype: d[9],
           body: d[11],
@@ -370,7 +377,7 @@ const grammar: Grammar = {
         }) },
     {"name": "MacroDefinition", "symbols": [{"literal":"macro"}, "_", {"literal":"-"}, {"literal":">"}, "_", "VariableType", "__", "Identifier", "__", "TypedIdentifier", "_", "FunctionArguments", "_", "CodeBlock"], "postprocess":  d => ({ 
           operation: "macro_definition", 
-          return_type: d[5],
+          type: d[5],
           name: d[7].value, 
           prototype: d[9],
           arguments: d[11].data,

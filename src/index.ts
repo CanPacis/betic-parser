@@ -4,7 +4,53 @@ import grammar from './grammar';
 interface BeticProgram {
 	imports: BeticImportStatement[];
 	program: BeticProgramStatement[];
-	template: [];
+	template: BeticTemplateStatement[];
+}
+
+type BeticTemplateStatement =
+	| BeticTemplateTagStatement
+	| BeticTemplateIfStatement
+	| BeticTemplateForStatement
+	| BeticTemplateSwitchStatement
+	| BeticCommentStatement;
+
+interface BeticTemplateTagStatement {
+	operation: 'tag';
+	name: string;
+	attributes: {
+		key: string;
+		value: BeticExpressionStatement;
+		position: IBeticPosition;
+	}[];
+	body: BeticTemplateStatement[];
+	position: IBeticPosition;
+}
+interface BeticTemplateIfStatement {
+	operation: 'if_statement';
+	condition: BeticExpressionStatement;
+	body: IBeticTemplateCodeBlock;
+	elifs: {
+		condition: BeticExpressionStatement;
+		body: IBeticTemplateCodeBlock;
+	}[];
+	else: IBeticTemplateCodeBlock;
+	position: IBeticPosition;
+}
+interface BeticTemplateForStatement {
+	operation: 'for_statement';
+	statement: BeticExpressionStatement;
+	placeholder: string;
+	body: IBeticTemplateCodeBlock;
+	position: IBeticPosition;
+}
+interface BeticTemplateSwitchStatement {
+	operation: 'switch_statement';
+	condition: BeticExpressionStatement;
+	cases: {
+		case: BeticExpressionStatement;
+		body: IBeticTemplateCodeBlock;
+	}[];
+	position: IBeticPosition;
 }
 
 interface BeticImportStatement {
@@ -196,6 +242,10 @@ interface IBeticPosition {
 interface IBeticCodeBlock {
 	block: BeticProgramStatement[];
 	provides: BeticExpressionStatement | null;
+}
+
+interface IBeticTemplateCodeBlock {
+	block: BeticTemplateStatement[];
 }
 
 type TBeticQuantityModifierType =

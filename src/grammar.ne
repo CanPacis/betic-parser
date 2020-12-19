@@ -173,7 +173,7 @@ Tag -> Identifier _ "-" ">" _ "{" _ (AttributeList _ {% id %}):* "}"
   {% d => ({
     operation: "tag",
     name: d[0].value,
-    attributes: d[7],
+    attributes: d[7][0],
     body: d[9] || [],
     position: position(d[0])
   }) %}
@@ -260,7 +260,8 @@ TemplateSwitchStatement -> "switch" __ Expression _
   {% d => ({ 
     operation: "switch_statement", 
     condition: d[2],
-    cases: d[6]
+    cases: d[6],
+    position: position(d[0])
   }) %}
 
 IfStatement -> "if" __ Expression _ CodeBlock 
