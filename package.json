@@ -1,0 +1,17 @@
+{
+  "name": "betic-parser",
+  "version": "2.1.2",
+  "description": "Betic language parser",
+  "main": "dist/index.js",
+  "scripts": {},
+  "keywords": [],
+  "author": "Muhammed Ali CAN",
+  "dependencies": {
+    "nearley": "2.19.7"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/moo": "^0.5.3",
+    "@types/nearley": "^2.11.1"
+  }
+}
