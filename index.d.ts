@@ -255,3 +255,5 @@ declare class BeticParser {
 	constructor();
 	parse: (input: string) => BeticProgram;
 }
+
+export = BeticParser
