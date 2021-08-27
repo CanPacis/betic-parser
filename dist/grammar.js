@@ -33,13 +33,13 @@ var lexer = moo_1.default.compile({
         match: /-?[0-9]+(?:\.[0-9]+)?/,
     },
     BinaryLiteral: {
-        match: /-?#b[0-1]+/
+        match: /-?@b[0-1]+/
     },
     HexLiteral: {
-        match: /-?#x[0-9a-fA-F]+/
+        match: /-?@x[0-9a-fA-F]+/
     },
     OctalLiteral: {
-        match: /-?#o[0-7]+/
+        match: /-?@o[0-7]+/
     },
     Dot: ".",
     Colon: ":",
@@ -205,7 +205,7 @@ var grammar = {
         { "name": "Tag", "symbols": ["Identifier", "_", { "literal": "-" }, { "literal": ">" }, "_", { "literal": "{" }, "_", "Tag$ebnf$1", { "literal": "}" }, "Tag$ebnf$2"], "postprocess": function (d) { return ({
                 operation: "tag",
                 name: d[0].value,
-                attributes: d[7],
+                attributes: d[7][0],
                 body: d[9] || [],
                 position: position(d[0])
             }); } },
@@ -245,20 +245,26 @@ var grammar = {
                 catches: d[8].block,
                 arguments: d[6].data
             }); } },
-        { "name": "QuantityModifier", "symbols": ["Mutatable", { "literal": "+" }, { "literal": "+" }], "postprocess": function (d) { return ({ operation: "quantity_modifier", type: "increment", statement: d[0] }); } },
-        { "name": "QuantityModifier", "symbols": ["Mutatable", { "literal": "-" }, { "literal": "-" }], "postprocess": function (d) { return ({ operation: "quantity_modifier", type: "decrement", statement: d[0] }); } },
-        { "name": "QuantityModifier", "symbols": ["Mutatable", "_", { "literal": "+" }, { "literal": "=" }, "_", "Expression"], "postprocess": function (d) { return ({ operation: "quantity_modifier", type: "add", statement: d[0], right: d[5] }); } },
-        { "name": "QuantityModifier", "symbols": ["Mutatable", "_", { "literal": "-" }, { "literal": "=" }, "_", "Expression"], "postprocess": function (d) { return ({ operation: "quantity_modifier", type: "subtract", statement: d[0], right: d[5] }); } },
-        { "name": "QuantityModifier", "symbols": ["Mutatable", "_", { "literal": "*" }, { "literal": "=" }, "_", "Expression"], "postprocess": function (d) { return ({ operation: "quantity_modifier", type: "multiply", statement: d[0], right: d[5] }); } },
-        { "name": "QuantityModifier", "symbols": ["Mutatable", "_", { "literal": "/" }, { "literal": "=" }, "_", "Expression"], "postprocess": function (d) { return ({ operation: "quantity_modifier", type: "divide", statement: d[0], right: d[5] }); } },
-        { "name": "AssignStatement", "symbols": ["Mutatable", "_", { "literal": "=" }, "_", "Expression"], "postprocess": function (d) { return ({ operation: "assign_statement", left: d[0], right: d[4] }); } },
+        { "name": "QuantityModifier", "symbols": ["Mutatable", { "literal": "+" }, { "literal": "+" }], "postprocess": function (d) { return ({ operation: "quantity_modifier", type: "increment", statement: d[0], position: d[0].position }); } },
+        { "name": "QuantityModifier", "symbols": ["Mutatable", { "literal": "-" }, { "literal": "-" }], "postprocess": function (d) { return ({ operation: "quantity_modifier", type: "decrement", statement: d[0], position: d[0].position }); } },
+        { "name": "QuantityModifier", "symbols": ["Mutatable", "_", { "literal": "+" }, { "literal": "=" }, "_", "Expression"], "postprocess": function (d) { return ({ operation: "quantity_modifier", type: "add", statement: d[0], right: d[5], position: d[0].position }); } },
+        { "name": "QuantityModifier", "symbols": ["Mutatable", "_", { "literal": "-" }, { "literal": "=" }, "_", "Expression"], "postprocess": function (d) { return ({ operation: "quantity_modifier", type: "subtract", statement: d[0], right: d[5], position: d[0].position }); } },
+        { "name": "QuantityModifier", "symbols": ["Mutatable", "_", { "literal": "*" }, { "literal": "=" }, "_", "Expression"], "postprocess": function (d) { return ({ operation: "quantity_modifier", type: "multiply", statement: d[0], right: d[5], position: d[0].position }); } },
+        { "name": "QuantityModifier", "symbols": ["Mutatable", "_", { "literal": "/" }, { "literal": "=" }, "_", "Expression"], "postprocess": function (d) { return ({ operation: "quantity_modifier", type: "divide", statement: d[0], right: d[5], position: d[0].position }); } },
+        { "name": "AssignStatement", "symbols": ["Mutatable", "_", { "literal": "=" }, "_", "Expression"], "postprocess": function (d) { return ({
+                operation: "assign_statement",
+                left: d[0],
+                right: d[4],
+                position: d[0].position
+            }); } },
         { "name": "SwitchStatement$ebnf$1", "symbols": [] },
         { "name": "SwitchStatement$ebnf$1$subexpression$1", "symbols": [{ "literal": "case" }, "__", "Expression", "_", "CodeBlock", "_"], "postprocess": function (d) { return ({ case: d[2], body: d[4] }); } },
         { "name": "SwitchStatement$ebnf$1", "symbols": ["SwitchStatement$ebnf$1", "SwitchStatement$ebnf$1$subexpression$1"], "postprocess": function (d) { return d[0].concat([d[1]]); } },
         { "name": "SwitchStatement", "symbols": [{ "literal": "switch" }, "__", "Expression", "_", { "literal": "{" }, "_", "SwitchStatement$ebnf$1", { "literal": "}" }], "postprocess": function (d) { return ({
                 operation: "switch_statement",
                 condition: d[2],
-                cases: d[6]
+                cases: d[6],
+                position: position(d[0])
             }); } },
         { "name": "TemplateSwitchStatement$ebnf$1", "symbols": [] },
         { "name": "TemplateSwitchStatement$ebnf$1$subexpression$1", "symbols": [{ "literal": "case" }, "__", "Expression", "_", "TemplateBlock", "_"], "postprocess": function (d) { return ({ case: d[2], body: d[4] }); } },
@@ -266,7 +272,8 @@ var grammar = {
         { "name": "TemplateSwitchStatement", "symbols": [{ "literal": "switch" }, "__", "Expression", "_", { "literal": "{" }, "_", "TemplateSwitchStatement$ebnf$1", { "literal": "}" }], "postprocess": function (d) { return ({
                 operation: "switch_statement",
                 condition: d[2],
-                cases: d[6]
+                cases: d[6],
+                position: position(d[0])
             }); } },
         { "name": "IfStatement$ebnf$1", "symbols": [] },
         { "name": "IfStatement$ebnf$1$subexpression$1", "symbols": ["_", { "literal": "elif" }, "__", "Expression", "_", "CodeBlock"], "postprocess": function (d) { return ({ condition: d[3], body: d[5] }); } },
@@ -324,18 +331,17 @@ var grammar = {
         { "name": "VariableDefinition$ebnf$1$subexpression$1", "symbols": [{ "literal": "expected" }, "__"], "postprocess": id },
         { "name": "VariableDefinition$ebnf$1", "symbols": ["VariableDefinition$ebnf$1$subexpression$1"], "postprocess": id },
         { "name": "VariableDefinition$ebnf$1", "symbols": [], "postprocess": function () { return null; } },
-        { "name": "VariableDefinition", "symbols": ["VariableDefinition$subexpression$1", "VariableDefinition$ebnf$1", "VariableType", "__", "Identifier", "_", { "literal": ":" }, { "literal": "=" }, "_", "Expression"], "postprocess": function (d) { return ({
+        { "name": "VariableDefinition", "symbols": ["VariableDefinition$subexpression$1", "VariableDefinition$ebnf$1", "Identifier", "_", { "literal": ":" }, { "literal": "=" }, "_", "Expression"], "postprocess": function (d) { return ({
                 operation: "variable_definition",
                 constant: d[0].value === "const",
                 expected: d[1] !== null,
-                type: d[2],
-                name: d[4].value,
-                value: d[9],
+                name: d[2].value,
+                value: d[7],
                 position: position(d[0])
             }); } },
         { "name": "FunctionDefinition", "symbols": [{ "literal": "func" }, "_", { "literal": "-" }, { "literal": ">" }, "_", "VariableType", "__", "Identifier", "_", "FunctionArguments", "_", "CodeBlock"], "postprocess": function (d) { return ({
                 operation: "function_definition",
-                return_type: d[5],
+                type: d[5],
                 name: d[7].value,
                 arguments: d[9].data,
                 body: d[11],
@@ -343,7 +349,7 @@ var grammar = {
             }); } },
         { "name": "MicroDefinition", "symbols": [{ "literal": "micro" }, "_", { "literal": "-" }, { "literal": ">" }, "_", "VariableType", "__", "Identifier", "__", "TypedIdentifier", "_", "CodeBlock"], "postprocess": function (d) { return ({
                 operation: "micro_definition",
-                return_type: d[5],
+                type: d[5],
                 name: d[7].value,
                 prototype: d[9],
                 body: d[11],
@@ -351,7 +357,7 @@ var grammar = {
             }); } },
         { "name": "MacroDefinition", "symbols": [{ "literal": "macro" }, "_", { "literal": "-" }, { "literal": ">" }, "_", "VariableType", "__", "Identifier", "__", "TypedIdentifier", "_", "FunctionArguments", "_", "CodeBlock"], "postprocess": function (d) { return ({
                 operation: "macro_definition",
-                return_type: d[5],
+                type: d[5],
                 name: d[7].value,
                 prototype: d[9],
                 arguments: d[11].data,
@@ -386,9 +392,11 @@ var grammar = {
         { "name": "Mutatable", "symbols": ["VariableReference"], "postprocess": id },
         { "name": "Mutatable", "symbols": ["MapValueGetter"], "postprocess": id },
         { "name": "Mutatable", "symbols": ["ListValueGetter"], "postprocess": id },
-        { "name": "Expression", "symbols": ["Expression", "_", { "literal": "+" }, "_", "MultDiv"], "postprocess": function (d) { return arithmetic("addition", d); } },
-        { "name": "Expression", "symbols": ["Expression", "_", { "literal": "-" }, "_", "MultDiv"], "postprocess": function (d) { return arithmetic("subtraction", d); } },
-        { "name": "Expression", "symbols": ["MultDiv"], "postprocess": id },
+        { "name": "Expression", "symbols": ["Conditions"], "postprocess": id },
+        { "name": "Expression", "symbols": ["Arithmetic"], "postprocess": id },
+        { "name": "Arithmetic", "symbols": ["Arithmetic", "_", { "literal": "+" }, "_", "MultDiv"], "postprocess": function (d) { return arithmetic("addition", d); } },
+        { "name": "Arithmetic", "symbols": ["Arithmetic", "_", { "literal": "-" }, "_", "MultDiv"], "postprocess": function (d) { return arithmetic("subtraction", d); } },
+        { "name": "Arithmetic", "symbols": ["MultDiv"], "postprocess": id },
         { "name": "MultDiv", "symbols": ["MultDiv", "_", { "literal": "*" }, "_", "Exponent"], "postprocess": function (d) { return arithmetic("multiplication", d); } },
         { "name": "MultDiv", "symbols": ["MultDiv", "_", { "literal": "/" }, "_", "Exponent"], "postprocess": function (d) { return arithmetic("division", d); } },
         { "name": "MultDiv", "symbols": ["Exponent"], "postprocess": id },
@@ -401,7 +409,6 @@ var grammar = {
         { "name": "MVG_FC", "symbols": ["FunctionCall"], "postprocess": id },
         { "name": "MVG_FC", "symbols": ["MicroCall"], "postprocess": id },
         { "name": "MVG_FC", "symbols": ["MacroCall"], "postprocess": id },
-        { "name": "MVG_FC", "symbols": ["Conditions"], "postprocess": id },
         { "name": "MVG_FC", "symbols": ["SubExpression"], "postprocess": id },
         { "name": "MapValueGetter", "symbols": ["MVG_FC", { "literal": ":" }, "SubExpression"], "postprocess": function (d) { return ({
                 operation: "map_value_getter",
@@ -439,7 +446,7 @@ var grammar = {
                 arguments: __spreadArrays([d[0]], d[7]),
                 position: d[0].position
             }); } },
-        { "name": "Conditions", "symbols": ["Expression", "_", (lexer.has("ConditionSign") ? { type: "ConditionSign" } : ConditionSign), "_", "SubExpression"], "postprocess": function (d) { return ({
+        { "name": "Conditions", "symbols": ["Expression", "_", (lexer.has("ConditionSign") ? { type: "ConditionSign" } : ConditionSign), "_", "Arithmetic"], "postprocess": function (d) { return ({
                 operation: "condition",
                 type: getCondition(d[2].value),
                 left: d[0],
@@ -452,7 +459,8 @@ var grammar = {
         { "name": "ManuelCast", "symbols": ["Expression", "_", { "literal": "as" }, "_", "VariableType"], "postprocess": function (d) { return ({
                 operation: "manuel_cast",
                 expression: d[0],
-                type: d[4]
+                type: d[4],
+                position: d[0].position
             }); } },
         { "name": "Grouping$subexpression$1", "symbols": ["Expression"], "postprocess": id },
         { "name": "Grouping$subexpression$1", "symbols": ["ManuelCast"], "postprocess": id },
@@ -509,8 +517,11 @@ var grammar = {
             }); } },
         { "name": "VariableType", "symbols": [(lexer.has("VariableType") ? { type: "VariableType" } : VariableType)], "postprocess": function (d) { return ({ base: d[0].value }); } },
         { "name": "VariableType", "symbols": [{ "literal": "Function" }, { "literal": "<" }, "_", "VariableType", "_", { "literal": ">" }], "postprocess": function (d) { return type("Function", d[3]); } },
+        { "name": "VariableType", "symbols": [{ "literal": "-" }, { "literal": ">" }, "VariableType"], "postprocess": function (d) { return type("Function", d[2]); } },
         { "name": "VariableType", "symbols": [{ "literal": "Map" }, { "literal": "<" }, "_", "VariableType", "_", { "literal": ">" }], "postprocess": function (d) { return type("Map", d[3]); } },
+        { "name": "VariableType", "symbols": [{ "literal": "{" }, { "literal": "}" }, "VariableType"], "postprocess": function (d) { return type("Map", d[2]); } },
         { "name": "VariableType", "symbols": [{ "literal": "List" }, { "literal": "<" }, "_", "VariableType", "_", { "literal": ">" }], "postprocess": function (d) { return type("List", d[3]); } },
+        { "name": "VariableType", "symbols": [{ "literal": "[" }, { "literal": "]" }, "VariableType"], "postprocess": function (d) { return type("List", d[2]); } },
         { "name": "VariableType", "symbols": ["Identifier"], "postprocess": function (d) { return type(d[0].value); } },
         { "name": "KeyValue", "symbols": ["Identifier", "_", { "literal": ":" }, "_", "Expression"], "postprocess": function (d) { return ({ key: d[0].value, value: d[4], position: position(d[0]) }); } },
         { "name": "KeyValueList", "symbols": ["KeyValue", "_", { "literal": "," }, "_", "KeyValueList"], "postprocess": function (d) { return __spreadArrays([d[0]], d[4]); } },

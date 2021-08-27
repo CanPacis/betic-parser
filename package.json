@@ -1,8 +1,9 @@
 {
-  "name": "betic-parser",
-  "version": "2.2.2",
+  "name": "beticlang-parser",
+  "version": "0.0.1",
   "description": "Betic language parser",
   "main": "dist/index.js",
+  "bin": "bin.js",
   "scripts": {},
   "keywords": [],
   "author": "Muhammed Ali CAN",

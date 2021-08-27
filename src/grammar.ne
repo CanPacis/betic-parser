@@ -8,13 +8,13 @@ const lexer = moo.compile({
     match: /-?[0-9]+(?:\.[0-9]+)?/,
   },
   BinaryLiteral: {
-    match: /-?#b[0-1]+/
+    match: /-?@b[0-1]+/
   },
   HexLiteral: {
-    match: /-?#x[0-9a-fA-F]+/
+    match: /-?@x[0-9a-fA-F]+/
   },
   OctalLiteral: {
-    match: /-?#o[0-7]+/
+    match: /-?@o[0-7]+/
   },
   Dot: ".",
   Colon: ":",
@@ -319,14 +319,13 @@ TypeDefinition
   }) %}
 
 VariableDefinition 
-  -> ("const" __ {% id %} | "var" __ {% id %}) ("expected" __ {% id %}):?  VariableType __ Identifier _ ":" "=" _ Expression 
+  -> ("const" __ {% id %} | "var" __ {% id %}) ("expected" __ {% id %}):?  Identifier _ ":" "=" _ Expression 
   {% d => ({ 
     operation: "variable_definition",
     constant: d[0].value === "const",
     expected: d[1] !== null,
-    type: d[2],
-    name: d[4].value, 
-    value: d[9],
+    name: d[2].value, 
+    value: d[7],
     position: position(d[0])
   }) %}
 
@@ -336,7 +335,7 @@ FunctionDefinition
   CodeBlock
   {% d => ({ 
     operation: "function_definition", 
-    return_type: d[5],
+    type: d[5],
     name: d[7].value, 
     arguments: d[9].data,
     body: d[11],
@@ -396,8 +395,12 @@ Mutatable
 ## Expressions
 
 Expression
-  -> Expression _ "+" _ MultDiv {% d => arithmetic("addition", d) %}
-  | Expression _ "-" _ MultDiv {% d => arithmetic("subtraction", d) %}
+  -> Conditions {% id %}
+  | Arithmetic {% id %}
+
+Arithmetic
+  -> Arithmetic _ "+" _ MultDiv {% d => arithmetic("addition", d) %}
+  | Arithmetic _ "-" _ MultDiv {% d => arithmetic("subtraction", d) %}
   | MultDiv {% id %}
 
 MultDiv 
@@ -417,7 +420,6 @@ MVG_FC
   | FunctionCall {% id %}
   | MicroCall {% id %}
   | MacroCall {% id %}
-  | Conditions {% id %}
   | SubExpression {% id %}
 
 MapValueGetter -> MVG_FC ":" SubExpression
@@ -462,7 +464,7 @@ MacroCall -> MVG_FC "-" ">" SubExpression
     position: d[0].position
   }) %}
 
-Conditions -> Expression _ %ConditionSign _ SubExpression
+Conditions -> Expression _ %ConditionSign _ Arithmetic
   {% d => ({ 
     operation: "condition", 
     type: getCondition(d[2].value), 
@@ -480,7 +482,8 @@ ManuelCast -> Expression _ "as" _ VariableType
   {% d => ({ 
     operation: "manuel_cast", 
     expression: d[0], 
-    type: d[4] 
+    type: d[4],
+    position: d[0].position 
   }) %}
 
 Grouping -> "{" (Expression {% id %}| ManuelCast {% id %}) "}"
@@ -558,10 +561,16 @@ VariableType
     {% d => ({ base: d[0].value }) %} 
   | "Function" "<" _ VariableType _ ">"
     {% d => type("Function", d[3]) %}
+  | "-" ">" VariableType
+    {% d => type("Function", d[2]) %}
   | "Map" "<" _ VariableType _ ">"
     {% d => type("Map", d[3]) %}
+  | "{" "}" VariableType
+    {% d => type("Map", d[2]) %}
   | "List" "<" _ VariableType _ ">"
     {% d => type("List", d[3]) %}
+  | "[" "]" VariableType
+    {% d => type("List", d[2]) %}
   | Identifier {% d => type(d[0].value) %}
 
 KeyValue -> Identifier _ ":" _ Expression

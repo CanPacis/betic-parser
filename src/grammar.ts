@@ -23,13 +23,13 @@ const lexer = moo.compile({
     match: /-?[0-9]+(?:\.[0-9]+)?/,
   },
   BinaryLiteral: {
-    match: /-?#b[0-1]+/
+    match: /-?@b[0-1]+/
   },
   HexLiteral: {
-    match: /-?#x[0-9a-fA-F]+/
+    match: /-?@x[0-9a-fA-F]+/
   },
   OctalLiteral: {
-    match: /-?#o[0-7]+/
+    match: /-?@o[0-7]+/
   },
   Dot: ".",
   Colon: ":",
@@ -350,18 +350,17 @@ const grammar: Grammar = {
     {"name": "VariableDefinition$ebnf$1$subexpression$1", "symbols": [{"literal":"expected"}, "__"], "postprocess": id},
     {"name": "VariableDefinition$ebnf$1", "symbols": ["VariableDefinition$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "VariableDefinition$ebnf$1", "symbols": [], "postprocess": () => null},
-    {"name": "VariableDefinition", "symbols": ["VariableDefinition$subexpression$1", "VariableDefinition$ebnf$1", "VariableType", "__", "Identifier", "_", {"literal":":"}, {"literal":"="}, "_", "Expression"], "postprocess":  d => ({ 
+    {"name": "VariableDefinition", "symbols": ["VariableDefinition$subexpression$1", "VariableDefinition$ebnf$1", "Identifier", "_", {"literal":":"}, {"literal":"="}, "_", "Expression"], "postprocess":  d => ({ 
           operation: "variable_definition",
           constant: d[0].value === "const",
           expected: d[1] !== null,
-          type: d[2],
-          name: d[4].value, 
-          value: d[9],
+          name: d[2].value, 
+          value: d[7],
           position: position(d[0])
         }) },
     {"name": "FunctionDefinition", "symbols": [{"literal":"func"}, "_", {"literal":"-"}, {"literal":">"}, "_", "VariableType", "__", "Identifier", "_", "FunctionArguments", "_", "CodeBlock"], "postprocess":  d => ({ 
           operation: "function_definition", 
-          return_type: d[5],
+          type: d[5],
           name: d[7].value, 
           arguments: d[9].data,
           body: d[11],
@@ -409,9 +408,11 @@ const grammar: Grammar = {
     {"name": "Mutatable", "symbols": ["VariableReference"], "postprocess": id},
     {"name": "Mutatable", "symbols": ["MapValueGetter"], "postprocess": id},
     {"name": "Mutatable", "symbols": ["ListValueGetter"], "postprocess": id},
-    {"name": "Expression", "symbols": ["Expression", "_", {"literal":"+"}, "_", "MultDiv"], "postprocess": d => arithmetic("addition", d)},
-    {"name": "Expression", "symbols": ["Expression", "_", {"literal":"-"}, "_", "MultDiv"], "postprocess": d => arithmetic("subtraction", d)},
-    {"name": "Expression", "symbols": ["MultDiv"], "postprocess": id},
+    {"name": "Expression", "symbols": ["Conditions"], "postprocess": id},
+    {"name": "Expression", "symbols": ["Arithmetic"], "postprocess": id},
+    {"name": "Arithmetic", "symbols": ["Arithmetic", "_", {"literal":"+"}, "_", "MultDiv"], "postprocess": d => arithmetic("addition", d)},
+    {"name": "Arithmetic", "symbols": ["Arithmetic", "_", {"literal":"-"}, "_", "MultDiv"], "postprocess": d => arithmetic("subtraction", d)},
+    {"name": "Arithmetic", "symbols": ["MultDiv"], "postprocess": id},
     {"name": "MultDiv", "symbols": ["MultDiv", "_", {"literal":"*"}, "_", "Exponent"], "postprocess": d => arithmetic("multiplication", d)},
     {"name": "MultDiv", "symbols": ["MultDiv", "_", {"literal":"/"}, "_", "Exponent"], "postprocess": d => arithmetic("division", d)},
     {"name": "MultDiv", "symbols": ["Exponent"], "postprocess": id},
@@ -424,7 +425,6 @@ const grammar: Grammar = {
     {"name": "MVG_FC", "symbols": ["FunctionCall"], "postprocess": id},
     {"name": "MVG_FC", "symbols": ["MicroCall"], "postprocess": id},
     {"name": "MVG_FC", "symbols": ["MacroCall"], "postprocess": id},
-    {"name": "MVG_FC", "symbols": ["Conditions"], "postprocess": id},
     {"name": "MVG_FC", "symbols": ["SubExpression"], "postprocess": id},
     {"name": "MapValueGetter", "symbols": ["MVG_FC", {"literal":":"}, "SubExpression"], "postprocess":  d => ({ 
           operation: "map_value_getter", 
@@ -462,7 +462,7 @@ const grammar: Grammar = {
           arguments: [d[0], ...d[7]],
           position: d[0].position
         }) },
-    {"name": "Conditions", "symbols": ["Expression", "_", (lexer.has("ConditionSign") ? {type: "ConditionSign"} : ConditionSign), "_", "SubExpression"], "postprocess":  d => ({ 
+    {"name": "Conditions", "symbols": ["Expression", "_", (lexer.has("ConditionSign") ? {type: "ConditionSign"} : ConditionSign), "_", "Arithmetic"], "postprocess":  d => ({ 
           operation: "condition", 
           type: getCondition(d[2].value), 
           left: d[0], 
@@ -475,7 +475,8 @@ const grammar: Grammar = {
     {"name": "ManuelCast", "symbols": ["Expression", "_", {"literal":"as"}, "_", "VariableType"], "postprocess":  d => ({ 
           operation: "manuel_cast", 
           expression: d[0], 
-          type: d[4] 
+          type: d[4],
+          position: d[0].position 
         }) },
     {"name": "Grouping$subexpression$1", "symbols": ["Expression"], "postprocess": id},
     {"name": "Grouping$subexpression$1", "symbols": ["ManuelCast"], "postprocess": id},
@@ -538,8 +539,11 @@ const grammar: Grammar = {
         }) },
     {"name": "VariableType", "symbols": [(lexer.has("VariableType") ? {type: "VariableType"} : VariableType)], "postprocess": d => ({ base: d[0].value })},
     {"name": "VariableType", "symbols": [{"literal":"Function"}, {"literal":"<"}, "_", "VariableType", "_", {"literal":">"}], "postprocess": d => type("Function", d[3])},
+    {"name": "VariableType", "symbols": [{"literal":"-"}, {"literal":">"}, "VariableType"], "postprocess": d => type("Function", d[2])},
     {"name": "VariableType", "symbols": [{"literal":"Map"}, {"literal":"<"}, "_", "VariableType", "_", {"literal":">"}], "postprocess": d => type("Map", d[3])},
+    {"name": "VariableType", "symbols": [{"literal":"{"}, {"literal":"}"}, "VariableType"], "postprocess": d => type("Map", d[2])},
     {"name": "VariableType", "symbols": [{"literal":"List"}, {"literal":"<"}, "_", "VariableType", "_", {"literal":">"}], "postprocess": d => type("List", d[3])},
+    {"name": "VariableType", "symbols": [{"literal":"["}, {"literal":"]"}, "VariableType"], "postprocess": d => type("List", d[2])},
     {"name": "VariableType", "symbols": ["Identifier"], "postprocess": d => type(d[0].value)},
     {"name": "KeyValue", "symbols": ["Identifier", "_", {"literal":":"}, "_", "Expression"], "postprocess": d => ({ key: d[0].value, value: d[4], position: position(d[0]) })},
     {"name": "KeyValueList", "symbols": ["KeyValue", "_", {"literal":","}, "_", "KeyValueList"], "postprocess": d => [d[0], ...d[4]]},
